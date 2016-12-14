@@ -9,11 +9,11 @@
 import UIKit
 
 class MyCalendarHelper {
-    let userCalendar = NSCalendar.currentCalendar()
-    var endDateComponents = NSDateComponents()
-    var endDate = NSDate()
+    let userCalendar = Calendar.current
+    var endDateComponents = DateComponents()
+    var endDate = Date()
     
-    func setEndDate(year: Int, month: Int, day: Int,
+    func setEndDate(_ year: Int, month: Int, day: Int,
         hour: Int, minute: Int, second: Int) {
             endDateComponents.year = year
             endDateComponents.month = month
@@ -21,28 +21,24 @@ class MyCalendarHelper {
             endDateComponents.hour = hour
             endDateComponents.minute = minute
             endDateComponents.second = 0
-            endDate = userCalendar.dateFromComponents(endDateComponents)!
+            endDate = userCalendar.date(from: endDateComponents)!
     }
     
-    func schoolDaysToEnd(start: NSDate) -> Int {
-        var days:Int = 0
+    func schoolDaysToEnd(_ start: Date) -> Int {
+        let days:Int = 0
         return days
     }
     
-    func timeToEnd(startDate: NSDate) -> NSDateComponents {
+    func timeToEnd(_ startDate: Date) -> DateComponents {
         // userCalendar.timeZone = NSTimeZone(name: "US/Pacific")!
-        let unit:NSCalendarUnit = .CalendarUnitYear | .CalendarUnitMonth | .CalendarUnitDay | .CalendarUnitHour | .CalendarUnitMinute | .CalendarUnitSecond
-        let startDateComponents = userCalendar.components(unit, fromDate: startDate)
-        let diffDateComponents = userCalendar.components(unit, fromDate:startDate, toDate:endDate, options:nil)
+        let diffDateComponents = userCalendar.dateComponents([.year, .month, .day, .hour, .minute, .second], from:startDate, to:endDate)
         return diffDateComponents
     }
     
-    func daysToEnd(startDate: NSDate) -> Int {
+    func daysToEnd(_ startDate: Date) -> Int {
         // userCalendar.timeZone = NSTimeZone(name: "US/Pacific")!
-        let unit:NSCalendarUnit = .CalendarUnitDay
-        let startDateComponents = userCalendar.components(unit, fromDate: startDate)
-        let diffDateComponents = userCalendar.components(unit, fromDate:startDate, toDate:endDate, options:nil)
-        return diffDateComponents.day
+        let diffDateComponents = userCalendar.dateComponents([.day], from:startDate, to:endDate)
+        return diffDateComponents.day!
     }
 }
 
@@ -51,7 +47,7 @@ class ViewController: UIViewController {
     @IBOutlet var daysToEnd: UILabel!
     @IBOutlet var timeToEnd: UILabel!
     
-    var timer = NSTimer()
+    var timer = Timer()
     var hsCalendar = MyCalendarHelper()
     
     @IBAction func exitButtonPressed() {
@@ -70,33 +66,34 @@ class ViewController: UIViewController {
     }
 
     func setupCountdown() {
-        hsCalendar.setEndDate(2019, month:6, day:10, hour:22, minute:05, second:0)
-        let hsTimeToEnd = hsCalendar.timeToEnd(NSDate())
-        let hsDaysToEnd = hsCalendar.daysToEnd(NSDate())
+        hsCalendar.setEndDate(2017, month:6, day:1, hour:12, minute:30, second:0)
+        let hsTimeToEnd = hsCalendar.timeToEnd(Date())
+        let hsDaysToEnd = hsCalendar.daysToEnd(Date())
         
         daysToEnd.text = "\(hsDaysToEnd) Days"
-        timeToEnd.text = String.localizedStringWithFormat("%02dh:%02dm:%02ds", hsTimeToEnd.hour, hsTimeToEnd.minute, hsTimeToEnd.second)
+        timeToEnd.text = String.localizedStringWithFormat("%02dh:%02dm:%02ds", hsTimeToEnd.hour!, hsTimeToEnd.minute!, hsTimeToEnd.second!)
         
-        timer = NSTimer.scheduledTimerWithTimeInterval(1.0, target:self, selector: Selector("subtractTime"), userInfo:nil, repeats: true)
+        timer = Timer.scheduledTimer(timeInterval: 1.0, target:self, selector: #selector(ViewController.subtractTime), userInfo:nil, repeats: true)
     }
     
     func subtractTime() {
-        let hsTimeToEnd = hsCalendar.timeToEnd(NSDate())
-        let hsDaysToEnd = hsCalendar.daysToEnd(NSDate())
+        // let now = Date()
+        let hsTimeToEnd = hsCalendar.timeToEnd(Date())
+        let hsDaysToEnd = hsCalendar.daysToEnd(Date())
         
         // set the countdown
         daysToEnd.text = "\(hsDaysToEnd) Days"
-        timeToEnd.text = String.localizedStringWithFormat("%02dh:%02dm:%02ds", hsTimeToEnd.hour, hsTimeToEnd.minute, hsTimeToEnd.second)
+        timeToEnd.text = String.localizedStringWithFormat("%02dh:%02dm:%02ds", hsTimeToEnd.hour!, hsTimeToEnd.minute!, hsTimeToEnd.second!)
         
         if (hsDaysToEnd == 0 && hsTimeToEnd.hour == 0 && hsTimeToEnd.minute == 0 && hsTimeToEnd.second == 0) {
             timer.invalidate()
             
             let alert = UIAlertController(title: "The end is here!",
                 message: "Congratuations! This is the end you were hoping for",
-                preferredStyle: UIAlertControllerStyle.Alert)
+                preferredStyle: UIAlertControllerStyle.alert)
             //alert.addAction(UIAlertAction(title: "Play Again", style: UIAlertActionStyle.Default, handler: {action in
             //self.setupGame()}))
-            presentViewController(alert, animated: true, completion: nil)
+            present(alert, animated: true, completion: nil)
             
         }
     }
